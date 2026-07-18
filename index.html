@@ -1,0 +1,1126 @@
+<!DOCTYPE html>
+<html lang="bn">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Di Earning - Premium Mini App</title>
+    <!-- টেলিগ্রাম মিনি অ্যাপের অফিশিয়াল SDK স্ক্রিপ্ট -->
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
+    <!-- টেলিগ্রামের আসল লোগো আইকন ব্যবহারের জন্য FontAwesome CDN -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        body {
+            /* নীল ও মিশ্রিত সবুজ কালার গ্রেডিয়েন্ট ব্যাকগ্রাউন্ড */
+            background: linear-gradient(135deg, #0b1c3a 0%, #072a27 100%);
+            color: #ffffff;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+        }
+
+        /* মোবাইল ফ্রেম কন্টেইনার */
+        .app-container {
+            width: 100%;
+            max-width: 410px;
+            height: 100vh;
+            background: linear-gradient(135deg, #0d2246 0%, #09332f 100%);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+            position: relative;
+        }
+
+        /* গ্লোবাল স্ক্রোল এরিয়া */
+        .app-content {
+            flex: 1;
+            padding: 20px;
+            overflow-y: auto;
+            padding-bottom: 90px;
+        }
+
+        .app-content::-webkit-scrollbar {
+            display: none;
+        }
+
+        /* পেজ ট্রানজিশন স্টাইল */
+        .app-page {
+            display: none;
+            animation: fadeIn 0.3s ease-in-out forwards;
+        }
+
+        .app-page.active {
+            display: block;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(5px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* ফিক্সড: গ্লাস কার্ড থিম এখন সাদা ও মিশ্রিত নীল গ্রেডিয়েন্ট */
+        .glass-card {
+            background: linear-gradient(135deg, rgba(255, 255, 255, 0.9) 0%, rgba(219, 234, 254, 0.95) 100%);
+            border: 1px solid rgba(56, 189, 248, 0.3);
+            border-radius: 20px;
+            padding: 20px;
+            margin-bottom: 16px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.25);
+            color: #1e293b; /* ডার্ক টেক্সট রিডিবিলিটির জন্য */
+        }
+
+        /* হোম পেজ ডিজাইন এলিমেন্টস */
+        .user-profile-bar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+
+        .user-info {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .avatar {
+            width: 45px;
+            height: 45px;
+            background: linear-gradient(135deg, #00c6ff, #0072ff);
+            border-radius: 50%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 24px;
+            border: 2px solid rgba(255,255,255,0.2);
+        }
+
+        .user-title {
+            font-size: 13px;
+            color: #e2e8f0;
+        }
+
+        .user-name {
+            font-size: 17px;
+            font-weight: 700;
+            color: #ffffff;
+        }
+
+        .status-badge {
+            background: rgba(16, 185, 129, 0.15);
+            border: 1px solid #10b981;
+            color: #34d399;
+            padding: 6px 14px;
+            border-radius: 50px;
+            font-size: 12px;
+            font-weight: bold;
+            letter-spacing: 0.5px;
+        }
+
+        .main-balance-text {
+            font-size: 42px;
+            font-weight: 800;
+            color: #1d4ed8; /* ব্লু কালার হাইলাইট */
+            margin: 10px 0;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        .today-profit-badge {
+            display: inline-flex;
+            background: rgba(30, 41, 59, 0.08);
+            color: #059669;
+            padding: 5px 12px;
+            border-radius: 50px;
+            font-size: 12px;
+            font-weight: 600;
+            margin-bottom: 20px;
+            border: 1px solid rgba(0, 0, 0, 0.05);
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 10px;
+        }
+
+        /* ফিক্সড: ছোট স্ট্যাট বক্সগুলোও সাদা ও মিশ্রিত নীল */
+        .stat-box {
+            background: rgba(255, 255, 255, 0.7);
+            border: 1px solid rgba(56, 189, 248, 0.2);
+            border-radius: 14px;
+            padding: 12px 5px;
+            text-align: center;
+        }
+
+        .stat-val {
+            font-size: 15px;
+            font-weight: 700;
+            margin-bottom: 4px;
+        }
+
+        .stat-lbl {
+            font-size: 11px;
+            color: #475569;
+        }
+
+        /* মেগা বাটন */
+        .mega-btn {
+            background: linear-gradient(90deg, #10b981 0%, #059669 100%);
+            border-radius: 20px;
+            padding: 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            cursor: pointer;
+            margin-bottom: 16px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            color: white;
+        }
+
+        .mega-title {
+            font-size: 16px;
+            font-weight: 700;
+            margin-bottom: 4px;
+        }
+
+        .mega-subtitle {
+            font-size: 12px;
+            color: rgba(255, 255, 255, 0.8);
+        }
+
+        .circle-arrow {
+            width: 35px;
+            height: 35px;
+            background: rgba(255, 255, 255, 0.2);
+            border-radius: 50%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-weight: bold;
+        }
+
+        .half-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 12px;
+            margin-bottom: 16px;
+        }
+
+        /* ২ কলাম গ্রিড বক্স সাদা ও মিশ্রিত নীল */
+        .half-box {
+            background: linear-gradient(135deg, rgba(255, 255, 255, 0.95) 0%, rgba(219, 234, 254, 0.95) 100%);
+            border: 1px solid rgba(56, 189, 248, 0.25);
+            border-radius: 18px;
+            padding: 16px;
+            cursor: pointer;
+            color: #1e293b;
+        }
+
+        .icon-wrapper {
+            width: 40px;
+            height: 40px;
+            background: rgba(14, 165, 233, 0.1);
+            border-radius: 12px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 20px;
+            color: #0284c7;
+            margin-bottom: 12px;
+        }
+
+        .half-title { font-size: 15px; font-weight: 700; margin-bottom: 4px; }
+        .half-sub { font-size: 12px; color: #64748b; margin-bottom: 8px; }
+        .half-action { font-size: 12px; color: #0284c7; font-weight: 600; }
+
+        .rules-title { font-size: 15px; font-weight: 700; margin-bottom: 12px; display: flex; align-items: center; gap: 8px; color: #e11d48; }
+        .rule-item { font-size: 12.5px; color: #334155; margin-bottom: 8px; line-height: 1.5; padding-left: 12px; position: relative; }
+        .rule-item::before { content: "•"; position: absolute; left: 0; color: #0284c7; }
+
+        /* টাস্ক কার্ডসমূহ সাদা ও মিশ্রিত নীল কালার */
+        .task-card {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: linear-gradient(135deg, rgba(255, 255, 255, 0.95) 0%, rgba(219, 234, 254, 0.95) 100%);
+            border-radius: 20px;
+            padding: 14px 16px;
+            margin-bottom: 14px;
+            border: 1px solid rgba(56, 189, 248, 0.25);
+            transition: all 0.3s ease;
+            color: #1e293b;
+        }
+        
+        .task-card.completed {
+            opacity: 0.5;
+        }
+
+        .task-left { display: flex; align-items: center; gap: 14px; }
+        
+        /* রাউন্ডেড টেলিগ্রাম বক্স */
+        .real-tg-icon-box {
+            width: 52px;
+            height: 52px;
+            background: linear-gradient(135deg, #ff5e62, #ff9966);
+            border-radius: 16px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 2px;
+        }
+        .real-tg-inner {
+            width: 100%;
+            height: 100%;
+            background: #24a1de;
+            border-radius: 14px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            color: white;
+            font-size: 24px;
+            box-shadow: inset 0 0 8px rgba(0,0,0,0.2);
+        }
+
+        .real-fb-icon-box {
+            width: 52px;
+            height: 52px;
+            background: linear-gradient(135deg, #3b5998, #4e71ba);
+            border-radius: 16px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            color: white;
+            font-size: 24px;
+        }
+        
+        .task-name { font-size: 15px; font-weight: 700; margin-bottom: 3px; color: #0f172a; }
+        .task-reward { font-size: 12.5px; color: #059669; font-weight: 600; display: flex; align-items: center; gap: 4px; }
+
+        /* রেড-অরেঞ্জ গ্রেডিয়েন্ট "Start" বাটন */
+        .task-btn {
+            background: linear-gradient(90deg, #ff416c 0%, #ff4b2b 100%);
+            border: none;
+            color: #ffffff;
+            padding: 10px 22px;
+            border-radius: 25px;
+            font-size: 14px;
+            font-weight: 700;
+            cursor: pointer;
+            min-width: 85px;
+            text-align: center;
+            box-shadow: 0 4px 12px rgba(255, 65, 108, 0.3);
+            transition: all 0.2s;
+        }
+        .task-btn.waiting {
+            background: #cbd5e1;
+            color: #475569;
+            box-shadow: none;
+        }
+        .task-btn.claim-ready {
+            background: linear-gradient(90deg, #10b981, #059669);
+            box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3);
+            animation: pulseBtn 1s infinite alternate;
+        }
+        .task-btn.done { 
+            background: rgba(0,0,0,0.06); 
+            color: #64748b; 
+            box-shadow: none; 
+            cursor: not-allowed; 
+        }
+
+        @keyframes pulseBtn {
+            from { transform: scale(1); }
+            to { transform: scale(1.04); }
+        }
+
+        /* রেফারেল পেজ */
+        .refer-amount-box { text-align: center; padding: 25px 10px; }
+        .refer-subtitle { font-size: 13px; color: #475569; }
+        .refer-prize { font-size: 46px; font-weight: 800; color: #d4af37; margin: 5px 0; }
+        .refer-code-container { background: rgba(0, 0, 0, 0.05); border: 1px dashed rgba(0,0,0,0.2); padding: 14px; border-radius: 14px; font-size: 24px; font-weight: 700; letter-spacing: 2px; text-align: center; margin: 15px 0; color: #0f172a; }
+        .refer-actions { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+        
+        /* স্ক্রিনশটের মতো আকর্ষণীয় বাটন স্টাইল */
+        .ref-btn { padding: 12px; border-radius: 14px; font-weight: 700; font-size: 15px; cursor: pointer; border: none; display: flex; justify-content: center; align-items: center; gap: 6px; }
+        .ref-copy { background: linear-gradient(135deg, #ffe066 0%, #d4af37 100%); color: #1e293b; box-shadow: 0 4px 10px rgba(212,175,55,0.2); }
+        .ref-share { background: linear-gradient(135deg, #1e3a8a 0%, #0d2246 100%); color: white; border: 1px solid rgba(255,255,255,0.1); }
+
+        /* স্ক্রিনশটের নতুন "কিভাবে কাজ করে?" গাইডলাইন স্টাইল */
+        .how-it-works-title { font-size: 16px; font-weight: 700; color: #b45309; margin-bottom: 12px; }
+        .how-it-works-item { font-size: 13.5px; color: #334155; margin-bottom: 8px; font-weight: 500; list-style-type: none; padding-left: 5px; }
+
+        /* প্রোফাইল পেজ এলিমেন্টস */
+        .profile-hero { text-align: center; padding: 15px 0; }
+        .big-avatar { width: 75px; height: 75px; background: radial-gradient(circle, #ffe066 0%, #d4af37 100%); border-radius: 50%; margin: 0 auto 10px; font-size: 38px; display: flex; justify-content: center; align-items: center; border: 3px solid #d4af37; box-shadow: 0 0 15px rgba(212,175,55,0.3); }
+        .profile-tag { font-size: 14px; color: #cbd5e1; margin-top: 4px; }
+        
+        .profile-balance-card { display: flex; justify-content: space-between; align-items: center; background: linear-gradient(135deg, rgba(255, 255, 255, 0.95) 0%, rgba(219, 234, 254, 0.95) 100%); padding: 18px; border-radius: 18px; margin-bottom: 16px; border: 1px solid rgba(56, 189, 248, 0.25); color: #1e293b; }
+
+        /* প্রোফাইল গ্রিড বক্স (৪টি বক্স সাদা ও মিশ্রিত নীল) */
+        .p-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 16px; }
+        .p-box { background: linear-gradient(135deg, rgba(255, 255, 255, 0.9) 0%, rgba(219, 234, 254, 0.9) 100%); padding: 16px; border-radius: 16px; border: 1px solid rgba(56, 189, 248, 0.2); text-align: left; color: #1e293b; }
+        .p-box-title { font-size: 12px; color: #475569; margin-top: 6px; }
+
+        /* ক্লিকেবল লিস্ট মেনু */
+        .list-item-clickable { display: flex; justify-content: space-between; align-items: center; padding: 16px 0; border-bottom: 1px solid rgba(0, 0, 0, 0.05); font-size: 14px; cursor: pointer; color: #1e293b; }
+        .list-item-clickable:last-child { border-bottom: none; }
+
+        /* উইথড্র পেজ */
+        .method-selector { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 20px; }
+        .method-card { border: 2px solid rgba(0,0,0,0.05); background: rgba(0,0,0,0.03); padding: 14px; border-radius: 14px; text-align: center; font-weight: 700; cursor: pointer; color: #475569; }
+        .method-card.selected { border-color: #0284c7; color: #0284c7; background: rgba(14, 165, 233, 0.05); }
+        .app-input { width: 100%; background: rgba(255,255,255,0.8); border: 1px solid rgba(56, 189, 248, 0.2); padding: 14px; border-radius: 12px; color: #0f172a; font-size: 14px; outline: none; margin-top: 6px; }
+        .submit-btn { width: 100%; background: linear-gradient(90deg, #38bdf8, #0284c7); padding: 14px; border-radius: 14px; border: none; color: white; font-weight: 700; font-size: 15px; cursor: pointer; margin-top: 10px; }
+        .alert-box { background: rgba(234, 179, 8, 0.15); border: 1px solid rgba(234, 179, 8, 0.2); color: #854d0e; padding: 12px; border-radius: 12px; font-size: 13px; margin-bottom: 16px; font-weight: 500; }
+
+        /* বটম নেভিগেশন বার */
+        .bottom-nav {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            height: 72px;
+            background: rgba(11, 28, 58, 0.95);
+            backdrop-filter: blur(10px);
+            border-top: 1px solid rgba(255, 255, 255, 0.1);
+            display: flex;
+            justify-content: space-around;
+            align-items: center;
+            z-index: 10;
+        }
+
+        .nav-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            color: #94a3b8;
+            cursor: pointer;
+            font-size: 11px;
+            font-weight: 500;
+            gap: 4px;
+        }
+
+        .nav-item.active { color: #38bdf8; }
+        .nav-icon { font-size: 20px; }
+
+        .red-toast-alert { 
+            position: absolute; 
+            top: -100px; 
+            left: 20px; 
+            right: 20px; 
+            background: #ef4444; 
+            color: #ffffff; 
+            padding: 14px 18px; 
+            border-radius: 14px; 
+            font-size: 13px; 
+            font-weight: 600; 
+            text-align: center; 
+            box-shadow: 0 10px 25px rgba(239, 68, 68, 0.3); 
+            z-index: 999; 
+            transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275); 
+            opacity: 0;
+        }
+        .red-toast-alert.show { top: 25px; opacity: 1; }
+    </style>
+</head>
+<body>
+
+    <div class="app-container">
+        
+        <div id="ad-error-toast" class="red-toast-alert">
+            ⚠️ বিজ্ঞাপনটি এখন লোড হতে সমস্যা হয়েছে পরে ট্রাই করুন।
+        </div>
+
+        <div class="app-content">
+            
+            <!-- ================= HOME PAGE ================= -->
+            <div id="page-home" class="app-page active">
+                <div class="user-profile-bar">
+                    <div class="user-info">
+                        <div class="avatar">😎</div>
+                        <div>
+                            <div class="user-title">স্বাগতম,</div>
+                            <div class="user-name" id="home-user-name">টেলিগ্রাম ইউজার</div>
+                        </div>
+                    </div>
+                    <div class="status-badge">⚡ ACTIVE</div>
+                </div>
+
+                <div class="glass-card">
+                    <div class="user-title">বর্তমান ব্যালেন্স</div>
+                    <div class="main-balance-text">৳ <span class="live-balance">0.00</span></div>
+                    <div class="today-profit-badge">📈 +৳<span id="home-today-earn">0.00</span> আজ</div>
+
+                    <div class="stats-grid">
+                        <div class="stat-box">
+                            <div class="stat-val" style="color: #059669;">৳<span id="box-today-earn">0.00</span></div>
+                            <div class="stat-lbl">আজকের আয়</div>
+                        </div>
+                        <div class="stat-box">
+                            <div class="stat-val" style="color: #0284c7;" id="home-ref-count">0 জন</div>
+                            <div class="stat-lbl">রেফারেল</div>
+                        </div>
+                        <div class="stat-box">
+                            <div class="stat-val" style="color: #e11d48;">৳<span id="box-total-withdraw">0.00</span></div>
+                            <div class="stat-lbl">উইথড্র</div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="mega-btn" onclick="watchAd()">
+                    <div>
+                        <div class="mega-title">📺 বিজ্ঞাপন দেখুন ও আয় করুন</div>
+                        <div class="mega-subtitle">৳৫.০০ প্রতিটি বিজ্ঞাপনে</div>
+                    </div>
+                    <div class="circle-arrow">↗</div>
+                </div>
+
+                <div class="half-grid">
+                    <div class="half-box" onclick="navigateTo('page-refer')">
+                        <div class="icon-wrapper">👥</div>
+                        <div class="half-title">রেফার করুন</div>
+                        <div class="half-sub">৳৫০ বোনাস</div>
+                        <div class="half-action">লিংক নিন ›</div>
+                    </div>
+                    <div class="half-box" onclick="navigateTo('page-withdraw')">
+                        <div class="icon-wrapper" style="color:#0284c7;">📈</div>
+                        <div class="half-title">উইথড্র করুন</div>
+                        <div class="half-sub">min ৳৫৫apply</div>
+                        <div class="half-action">আবেদন করুন ›</div>
+                    </div>
+                </div>
+
+                <div class="glass-card" style="display:flex; justify-content:space-between; align-items:center;">
+                    <div style="display:flex; gap:12px; align-items:center;">
+                        <span style="font-size:24px;">📢</span>
+                        <div>
+                            <div style="font-weight:700; font-size:14px;">চ্যানেলে যোগ দিন</div>
+                            <div style="font-size:12px; color:#475569;">পেমেন্ট প্রুফ ও নতুন অফার</div>
+                        </div>
+                    </div>
+                    <button style="background:#0284c7; border:none; color:white; padding:8px 16px; border-radius:12px; font-weight:700; font-size:12px; cursor:pointer;" onclick="openLinkSafely('https://t.me/Dailey_income')">যুক্ত হন</button>
+                </div>
+
+                <div class="glass-card">
+                    <div class="rules-title">🛡️ নিয়মাবলী</div>
+                    <div class="rule-item">সঠিকভাবে কাজ না করলে পেমেন্ট পাবেন না।</div>
+                    <div class="rule-item">অ্যাড দেখার দৈনিক লিমিট ২০টি (প্রতিদিন রাত ১২টায় নতুন করে চালু হবে)।</div>
+                    <div class="rule-item">টাস্ক কমপ্লিট করতে চ্যানেলে বা পেজে অন্তত ১৫ সেকেন্ড থাকতে হবে।</div>
+                </div>
+            </div>
+
+            <!-- ================= AY KORUN PAGE ================= -->
+            <div id="page-earn" class="app-page">
+                <div style="font-size:20px; font-weight:700; margin-bottom:4px;">আয় করুন</div>
+                <div style="font-size:13px; color:#cbd5e1; margin-bottom:20px;">নিচের কাজগুলো সম্পন্ন করে টাকা আয় করুন</div>
+
+                <div class="glass-card" style="border-left: 4px solid #38bdf8;">
+                    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px;">
+                        <div style="display:flex; gap:10px; align-items:center;">
+                            <span style="font-size:24px;">📺</span>
+                            <div>
+                                <div style="font-weight:700; font-size:15px; color:#0f172a;">বিজ্ঞাপন দেখুন</div>
+                                <div style="font-size:12px; color:#475569;"><span id="watched-ads-count">0</span>/২০ দেখা হয়েছে</div>
+                            </div>
+                        </div>
+                        <button style="background: linear-gradient(90deg, #10b981, #059669); border:none; color:white; padding:8px 16px; border-radius:10px; font-weight:700; cursor:pointer;" onclick="watchAd()">📺 দেখুন</button>
+                    </div>
+                    <div class="task-reward">৳৫.০০ / বিজ্ঞাপন (প্রতিদিন ২০টি)</div>
+                </div>
+
+                <!-- জয়েন বোনাস টাস্ক -->
+                <div class="task-card" id="t-card-1">
+                    <div class="task-left">
+                        <div class="real-tg-icon-box" style="background: linear-gradient(135deg, #00f2fe, #4facfe);"><div class="real-tg-inner" style="background:#0072ff;">🎁</div></div>
+                        <div>
+                            <div class="task-name">🎁 জয়েন বোনাস</div>
+                            <div class="task-reward"><i class="fas fa-coins"></i> ৳ ৫০.০০</div>
+                        </div>
+                    </div>
+                    <button class="task-btn" id="btn-t-card-1" onclick="handleTask('t-card-1', 50, '')">Start</button>
+                </div>
+
+                <!-- টেলিগ্রাম বক্স ১ (পেমেন্ট প্রুফ চ্যানেল) -->
+                <div class="task-card" id="t-card-2">
+                    <div class="task-left">
+                        <div class="real-tg-icon-box"><div class="real-tg-inner"><i class="fab fa-telegram-plane"></i></div></div>
+                        <div>
+                            <div class="task-name">পেমেন্ট প্রুফ চ্যানেল</div>
+                            <div class="task-reward"><i class="fas fa-coins"></i> ৳ ৩০.০০</div>
+                        </div>
+                    </div>
+                    <button class="task-btn" id="btn-t-card-2" onclick="handleTask('t-card-2', 30, 'https://t.me/digitalzoneproof')">Start</button>
+                </div>
+
+                <!-- টেলিগ্রাম বক্স ২ (Official Channel) -->
+                <div class="task-card" id="t-card-3">
+                    <div class="task-left">
+                        <div class="real-tg-icon-box"><div class="real-tg-inner"><i class="fab fa-telegram-plane"></i></div></div>
+                        <div>
+                            <div class="task-name">❖Income🎯Talent❖</div>
+                            <div class="task-reward"><i class="fas fa-coins"></i> ৳ ৩০.০০</div>
+                        </div>
+                    </div>
+                    <button class="task-btn" id="btn-t-card-3" onclick="handleTask('t-card-3', 30, 'https://t.me/Dailey_income')">Start</button>
+                </div>
+
+                <!-- টেলিগ্রাম বক্স ৩ (Giveaway) -->
+                <div class="task-card" id="t-card-4">
+                    <div class="task-left">
+                        <div class="real-tg-icon-box"><div class="real-tg-inner"><i class="fab fa-telegram-plane"></i></div></div>
+                        <div>
+                            <div class="task-name">Giveaway Group</div>
+                            <div class="task-reward"><i class="fas fa-coins"></i> ৳ ৩০.০০</div>
+                        </div>
+                    </div>
+                    <button class="task-btn" id="btn-t-card-4" onclick="handleTask('t-card-4', 30, 'https://t.me/onlineincomegup')">Start</button>
+                </div>
+
+                <!-- টেলিগ্রাম বক্স ৪ (Life Time Income BD) -->
+                <div class="task-card" id="t-card-5">
+                    <div class="task-left">
+                        <div class="real-tg-icon-box"><div class="real-tg-inner"><i class="fab fa-telegram-plane"></i></div></div>
+                        <div>
+                            <div class="task-name">Life Time Income</div>
+                            <div class="task-reward"><i class="fas fa-coins"></i> ৳ ৩০.০০</div>
+                        </div>
+                    </div>
+                    <button class="task-btn" id="btn-t-card-5" onclick="handleTask('t-card-5', 30, 'https://t.me/life_time_income_bd')">Start</button>
+                </div>
+
+                <!-- টেলিগ্রাম বক্স ৫ (Daily Income Earning Jone) -->
+                <div class="task-card" id="t-card-6">
+                    <div class="task-left">
+                        <div class="real-tg-icon-box"><div class="real-tg-inner"><i class="fab fa-telegram-plane"></i></div></div>
+                        <div>
+                            <div class="task-name">Earning Jone Channel</div>
+                            <div class="task-reward"><i class="fas fa-coins"></i> ৳ ৩০.০০</div>
+                        </div>
+                    </div>
+                    <button class="task-btn" id="btn-t-card-6" onclick="handleTask('t-card-6', 30, 'https://t.me/daily_income_Earning_jone')">Start</button>
+                </div>
+
+                <!-- ফেসবুক পেজ ফলো বক্স ৬ -->
+                <div class="task-card" id="t-card-7">
+                    <div class="task-left">
+                        <div class="real-fb-icon-box"><i class="fab fa-facebook-f"></i></div>
+                        <div>
+                            <div class="task-name">Facebook Page Follow 1</div>
+                            <div class="task-reward"><i class="fas fa-coins"></i> ৳ ৫০.০০</div>
+                        </div>
+                    </div>
+                    <button class="task-btn" id="btn-t-card-7" onclick="handleTask('t-card-7', 50, 'https://www.facebook.com/share/193Xoxk32Z/')">Start</button>
+                </div>
+
+                <!-- ফেসবুক পেজ ফলো বক্স ৮ -->
+                <div class="task-card" id="t-card-8">
+                    <div class="task-left">
+                        <div class="real-fb-icon-box"><i class="fab fa-facebook-f"></i></div>
+                        <div>
+                            <div class="task-name">Facebook Page Follow 2</div>
+                            <div class="task-reward"><i class="fas fa-coins"></i> ৳ ৫০.০০</div>
+                        </div>
+                    </div>
+                    <button class="task-btn" id="btn-t-card-8" onclick="handleTask('t-card-8', 50, 'https://www.facebook.com/share/1GxAwqtHMR/')">Start</button>
+                </div>
+            </div>
+
+            <!-- ================= REFER PAGE ================= -->
+            <div id="page-refer" class="app-page">
+                <div class="glass-card refer-amount-box">
+                    <div class="refer-subtitle">প্রতি রেফারে পাবেন</div>
+                    <div class="refer-prize">৳৫০</div>
+                    <div class="refer-subtitle" style="color: #475569;">মোট <span class="live-ref-count">0</span> জন • মোট আয় ৳<span id="ref-total-earn">0.00</span></div>
+                </div>
+
+                <div class="glass-card">
+                    <div class="refer-subtitle" style="text-align:center;">আপনার রেফার কোড</div>
+                    <div class="refer-code-container" id="display-refer-code">------</div>
+                    <div class="refer-actions">
+                        <button class="ref-btn ref-copy" onclick="copyReferralLink()">📋 লিংক কপি</button>
+                        <button class="ref-btn ref-share" onclick="shareToTelegram()">🔗 শেয়ার</button>
+                    </div>
+                </div>
+
+                <!-- নতুন সংযোজন: কিভাবে কাজ করে নির্দেশিকা কার্ড -->
+                <div class="glass-card">
+                    <div class="how-it-works-title">কিভাবে কাজ করে?</div>
+                    <li class="how-it-works-item">• ১. আপনার রেফার লিংক কপি করুন</li>
+                    <li class="how-it-works-item">• ২. বন্ধুকে লিংক পাঠান, সে জয়েন করুক</li>
+                    <li class="how-it-works-item">• ৩. তারা জয়েন করলে আপনি বোনাস পাবেন</li>
+                </div>
+            </div>
+
+            <!-- ================= WITHDRAW PAGE ================= -->
+            <div id="page-withdraw" class="app-page">
+                <div class="alert-box">
+                    ⚠️ ব্যালেন্স সর্বনিম্ন ৳৫৫০ হলে উইথড্র করতে পারবেন। 
+                </div>
+
+                <div class="glass-card">
+                    <div style="font-weight:700; margin-bottom:15px; font-size:15px; color:#0284c7;">উইথড্র রিকোয়েস্ট</div>
+                    <label class="user-title" style="color:#475569;">পেমেন্ট মেথড</label>
+                    <div class="method-selector">
+                        <div class="method-card selected" onclick="selectMethod(this)">💳 bKash</div>
+                        <div class="method-card" onclick="selectMethod(this)">💳 Nagad</div>
+                    </div>
+
+                    <div>
+                        <label class="user-title" style="color:#475569;">একাউন্ট নম্বর</label>
+                        <input type="text" id="withdraw-number" class="app-input" placeholder="01XXXXXXXXX">
+                    </div>
+
+                    <div style="margin-top: 12px;">
+                        <label class="user-title" style="color:#475569;">পরিমাণ (৳) <span style="float:right; font-size:11px; color:#64748b;">সর্বনিম্ন ৳৫৫০</span></label>
+                        <input type="number" id="withdraw-amount" class="app-input" placeholder="550">
+                    </div>
+
+                    <button class="submit-btn" onclick="processWithdraw()">↗ উইথড্র রিকোয়েস্ট দিন</button>
+                </div>
+
+                <div class="glass-card" style="margin-top: 16px;">
+                    <div style="font-weight:700; margin-bottom:15px; font-size:15px; color:#0284c7;">📋 উইথড্র হিস্টোরি</div>
+                    <div id="withdraw-history-list">
+                        <div style="text-align:center; font-size:13px; color:#475569; padding:15px 0;">কোন হিস্টোরি নাই</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ================= PROFILE PAGE (ফিক্সড ও সম্পূর্ণ ডিজাইন) ================= -->
+            <div id="page-profile" class="app-page">
+                <div class="profile-hero">
+                    <div class="big-avatar">😎</div>
+                    <div class="user-name" id="profile-user-name">টেলিগ্রাম ইউজার</div>
+                    <div class="profile-tag" id="profile-user-id">ID: ------</div>
+                </div>
+
+                <div class="profile-balance-card">
+                    <div>
+                        <div class="user-title" style="color:#475569;">বর্তমান ব্যালেন্স</div>
+                        <div style="font-size:28px; font-weight:800; color:#0284c7;">৳ <span class="live-balance">0.00</span></div>
+                    </div>
+                    <button style="background:#38bdf8; border:none; color:white; padding:10px 20px; border-radius:12px; font-weight:700; cursor:pointer;" onclick="navigateTo('page-withdraw')">উইথড্র</button>
+                </div>
+
+                <!-- স্ক্রিনশটের ৪টি বক্সের গ্রিড মেকানিজম -->
+                <div class="p-grid">
+                    <div class="p-box">
+                        <div style="font-size:18px; font-weight:700; color:#059669;">৳ <span id="profile-total-earn">0.00</span></div>
+                        <div class="p-box-title">মোট আয়</div>
+                    </div>
+                    <div class="p-box">
+                        <div style="font-size:18px; font-weight:700; color:#e11d48;">৳ <span id="profile-total-withdraw">0.00</span></div>
+                        <div class="p-box-title">মোট উইথড্র</div>
+                    </div>
+                    <div class="p-box">
+                        <div style="font-size:18px; font-weight:700; color:#0284c7;"><span id="profile-today-tasks">0</span> টি</div>
+                        <div class="p-box-title">আজকের কাজ</div>
+                    </div>
+                    <div class="p-box">
+                        <div style="font-size:18px; font-weight:700; color:#b45309;"><span id="profile-total-tasks">0</span> টি</div>
+                        <div class="p-box-title">মোট কাজ</div>
+                    </div>
+                </div>
+
+                <!-- রেফার কোড ও নিয়মাবলীর সম্পূর্ণ ক্লিকেবল কার্ড -->
+                <div class="glass-card" style="padding: 5px 15px;">
+                    <div class="list-item-clickable">
+                        <span>💼 রেফার কোড: <strong style="color:#b45309;" id="profile-refer-code">------</strong></span>
+                    </div>
+                    <div class="list-item-clickable" onclick="navigateTo('page-home')">
+                        <span>📄 নিয়মাবলী ও সাপোর্ট</span>
+                        <span>›</span>
+                    </div>
+                </div>
+
+                <!-- ডেট টেক্সট -->
+                <div style="text-align:center; font-size:12px; color:#cbd5e1; margin-top:20px;">
+                    যোগ দিয়েছেন: <span id="join-date-text">18/7/2026</span>
+                </div>
+            </div>
+
+        </div>
+
+        <!-- বটম নেভিগেশন বার -->
+        <div class="bottom-nav">
+            <div class="nav-item active" onclick="navigateTo('page-home')">
+                <span class="nav-icon">🏠</span><span>হোম</span>
+            </div>
+            <div class="nav-item" onclick="navigateTo('page-earn')">
+                <span class="nav-icon">💼</span><span>আয় করুন</span>
+            </div>
+            <div class="nav-item" onclick="navigateTo('page-refer')">
+                <span class="nav-icon">👥</span><span>রেফার</span>
+            </div>
+            <div class="nav-item" onclick="navigateTo('page-withdraw')">
+                <span class="nav-icon">💵</span><span>উইথড্র</span>
+            </div>
+            <div class="nav-item" onclick="navigateTo('page-profile')">
+                <span class="nav-icon">👤</span><span>প্রোফাইল</span>
+            </div>
+        </div>
+
+    </div>
+
+    <script>
+        let tgUserId = "13491024"; 
+        let tgUserName = "টেলিগ্রাম ইউজার";
+
+        if (window.Telegram && window.Telegram.WebApp) {
+            const webApp = window.Telegram.WebApp;
+            webApp.ready();
+            webApp.expand();
+
+            if (webApp.initDataUnsafe && webApp.initDataUnsafe.user) {
+                const tgUser = webApp.initDataUnsafe.user;
+                tgUserName = (tgUser.first_name + " " + (tgUser.last_name || "")).trim();
+                tgUserId = tgUser.id.toString();
+            }
+        }
+
+        let storageKey = "as_earn_user_" + tgUserId;
+        let localData = localStorage.getItem(storageKey);
+
+        let userData = {
+            name: tgUserName,
+            id: tgUserId,
+            balance: 0.00,
+            todayEarn: 0.00,
+            totalEarn: 0.00,
+            totalWithdraw: 0.00,
+            todayTasks: 0,
+            totalTasks: 0,
+            referCount: 0,
+            watchedAds: 0,
+            lastAdDate: "",
+            isNewUser: true
+        };
+
+        if (localData) {
+            userData = JSON.parse(localData);
+            userData.name = tgUserName; 
+            userData.id = tgUserId;
+        }
+
+        let botUserName = "Daily_Income_Earning_bot"; 
+        let selectedMethodName = "💳 bKash"; 
+        let withdrawHistory = JSON.parse(localStorage.getItem("withdraw_history_" + tgUserId)) || []; 
+        let activeTasksState = {};
+
+        document.addEventListener("DOMContentLoaded", function() {
+            const today = new Date();
+            const dateStr = today.getFullYear() + "-" + (today.getMonth() + 1) + "-" + today.getDate();
+            document.getElementById("join-date-text").innerText = today.getDate() + "/" + (today.getMonth() + 1) + "/" + today.getFullYear();
+
+            // দৈনিক রিস্টার্ট লজিক: মেইন ব্যালেন্স ও টোটাল আর্ন সবসময় সুরক্ষিত থাকবে
+            if (userData.lastAdDate !== dateStr) {
+                userData.watchedAds = 0; 
+                userData.todayEarn = 0.00; 
+                userData.todayTasks = 0; 
+                userData.lastAdDate = dateStr;
+                saveUserData();
+            }
+
+            checkReferralSystem();
+            renderCompletedTasksUI();
+            setupDynamicUI();
+            renderWithdrawHistory();
+        });
+
+        function saveUserData() {
+            localStorage.setItem(storageKey, JSON.stringify(userData));
+            localStorage.setItem("withdraw_history_" + tgUserId, JSON.stringify(withdrawHistory));
+        }
+
+        function checkReferralSystem() {
+            if (window.Telegram && window.Telegram.WebApp) {
+                const webApp = window.Telegram.WebApp;
+                let referrerId = webApp.initDataUnsafe.start_param;
+
+                if (userData.isNewUser && referrerId && referrerId !== userData.id) {
+                    let refStorageKey = "as_earn_user_" + referrerId;
+                    let refLocalData = localStorage.getItem(refStorageKey);
+                    
+                    let refUserData = refLocalData ? JSON.parse(refLocalData) : {
+                        balance: 0.00, todayEarn: 0.00, totalEarn: 0.00, referCount: 0
+                    };
+
+                    refUserData.referCount += 1;
+                    refUserData.balance += 50.00;
+                    refUserData.totalEarn += 50.00;
+                    
+                    localStorage.setItem(refStorageKey, JSON.stringify(refUserData));
+                    
+                    userData.isNewUser = false;
+                    saveUserData();
+                }
+            }
+            if(userData.isNewUser) {
+                userData.isNewUser = false;
+                saveUserData();
+            }
+        }
+
+        function setupDynamicUI() {
+            document.getElementById("home-user-name").innerText = userData.name;
+            document.getElementById("profile-user-name").innerText = userData.name;
+            document.getElementById("profile-user-id").innerText = "ID: " + userData.id;
+            document.getElementById("display-refer-code").innerText = userData.id;
+            document.getElementById("profile-refer-code").innerText = userData.id;
+
+            document.querySelectorAll(".live-balance").forEach(el => el.innerText = userData.balance.toFixed(2));
+            
+            document.getElementById("home-today-earn").innerText = userData.todayEarn.toFixed(2);
+            document.getElementById("box-today-earn").innerText = userData.todayEarn.toFixed(2);
+            document.getElementById("profile-total-earn").innerText = userData.totalEarn.toFixed(2);
+            document.getElementById("ref-total-earn").innerText = (userData.referCount * 50).toFixed(2);
+            document.getElementById("box-total-withdraw").innerText = userData.totalWithdraw.toFixed(2);
+            document.getElementById("profile-total-withdraw").innerText = userData.totalWithdraw.toFixed(2);
+            
+            // প্রোফাইলের নতুন কার্ড ভ্যালু বাইন্ডিং
+            document.getElementById("profile-today-tasks").innerText = userData.todayTasks;
+            document.getElementById("profile-total-tasks").innerText = userData.totalTasks;
+
+            document.getElementById("watched-ads-count").innerText = userData.watchedAds;
+            document.querySelectorAll(".live-ref-count").forEach(el => el.innerText = userData.referCount);
+            document.getElementById("home-ref-count").innerText = userData.referCount + " জন";
+        }
+
+        function renderCompletedTasksUI() {
+            for(let i=1; i<=8; i++) {
+                if(localStorage.getItem(`task_completed_t-card-${i}_${userData.id}`)) {
+                    const card = document.getElementById(`t-card-${i}`);
+                    if(card) {
+                        card.classList.add("completed");
+                        const btn = card.querySelector(".task-btn");
+                        btn.innerText = "✓ সফল";
+                        btn.className = "task-btn done";
+                        btn.disabled = true;
+                    }
+                }
+            }
+        }
+
+        function watchAd() {
+            if (userData.watchedAds < 20) {
+                userData.balance += 5.00;
+                userData.todayEarn += 5.00;
+                userData.totalEarn += 5.00;
+                userData.watchedAds += 1;
+                userData.todayTasks += 1;
+                userData.totalTasks += 1;
+                
+                saveUserData();
+                setupDynamicUI();
+                alert("🎉 সফলভাবে বিজ্ঞাপন দেখা সম্পন্ন হয়েছে! ৫.০০ টাকা যোগ করা হলো।");
+            } else {
+                const toast = document.getElementById("ad-error-toast");
+                toast.innerText = "⚠️ আজকের ২০টি বিজ্ঞাপন দেখার লিমিট শেষ! কাল আবার দেখতে পারবেন।";
+                toast.classList.add("show");
+                setTimeout(() => { toast.classList.remove("show"); }, 3000);
+            }
+        }
+
+        function openLinkSafely(url) {
+    if (window.Telegram && window.Telegram.WebApp) {
+        // যদি লিংকটি টেলিগ্রামের হয় (t.me)
+        if (url.includes("t.me")) {
+            if (window.Telegram.WebApp.openTelegramLink) {
+                window.Telegram.WebApp.openTelegramLink(url);
+            } else {
+                window.Telegram.WebApp.openLink(url);
+            }
+        } else {
+            // ফেসবুক, ইউটিউব বা অন্য যেকোনো এক্সটার্নাল লিংকের জন্য
+            window.Telegram.WebApp.openLink(url);
+        }
+    } else {
+        // সাধারণ কোনো ওয়েব ব্রাউজারে টেস্ট করার জন্য
+        window.open(url, '_blank');
+    }
+}
+
+
+        function handleTask(cardId, amount, targetUrl) {
+            const card = document.getElementById(cardId);
+            const btn = document.getElementById(`btn-${cardId}`);
+            
+            if (card.classList.contains("completed") || localStorage.getItem(`task_completed_${cardId}_${userData.id}`)) return;
+
+            if (targetUrl === '') {
+                claimTaskBonus(cardId, amount);
+                return;
+            }
+
+            if (!activeTasksState[cardId]) {
+                activeTasksState[cardId] = {
+                    status: "waiting",
+                    timeLeft: 15
+                };
+
+                openLinkSafely(targetUrl);
+
+                btn.classList.add("waiting");
+                btn.innerText = `${activeTasksState[cardId].timeLeft}s`;
+
+                const interval = setInterval(() => {
+                    activeTasksState[cardId].timeLeft -= 1;
+                    btn.innerText = `${activeTasksState[cardId].timeLeft}s`;
+
+                    if (activeTasksState[cardId].timeLeft <= 0) {
+                        clearInterval(interval);
+                        activeTasksState[cardId].status = "ready";
+                        btn.classList.remove("waiting");
+                        btn.classList.add("claim-ready");
+                        btn.innerText = "Claim";
+                    }
+                }, 1000);
+
+            } else if (activeTasksState[cardId].status === "ready") {
+                claimTaskBonus(cardId, amount);
+                delete activeTasksState[cardId];
+            } else {
+                alert("⚠️ টাস্কটি সম্পূর্ণ করতে পেজটিতে অন্তত ১৫ সেকেন্ড অপেক্ষা করুন এবং ব্যাক আসুন!");
+            }
+        }
+
+        function claimTaskBonus(cardId, amount) {
+            const card = document.getElementById(cardId);
+            const btn = document.getElementById(`btn-${cardId}`);
+
+            userData.balance += amount;
+            userData.todayEarn += amount;
+            userData.totalEarn += amount;
+            userData.todayTasks += 1;
+            userData.totalTasks += 1;
+
+            card.classList.add("completed");
+            btn.innerText = "✓ সফল";
+            btn.className = "task-btn done";
+            btn.disabled = true;
+
+            localStorage.setItem(`task_completed_${cardId}_${userData.id}`, "true");
+
+            saveUserData();
+            setupDynamicUI();
+            alert("🎉 অভিনন্দন! কাজ সফল হয়েছে।");
+        }
+
+        function renderWithdrawHistory() {
+            const historyList = document.getElementById("withdraw-history-list");
+            if (withdrawHistory.length === 0) {
+                historyList.innerHTML = `<div style="text-align:center; font-size:13px; color:#475569; padding:15px 0;">কোন হিস্টোরি নাই</div>`;
+                return;
+            }
+
+            historyList.innerHTML = withdrawHistory.map(item => `
+                <div style="display:flex; justify-content:space-between; align-items:center; background:rgba(0, 0, 0, 0.05); padding:12px; border-radius:12px; margin-bottom:10px; border-left:4px solid #38bdf8; color:#1e293b;">
+                    <div>
+                        <div style="font-size:14px; font-weight:700;">${item.method} (${item.number})</div>
+                        <div style="font-size:11px; color:#64748b; margin-top:2px;">${item.time}</div>
+                    </div>
+                    <div style="text-align:right;">
+                        <div style="font-size:14px; font-weight:700; color:#0284c7;">৳${item.amount.toFixed(2)}</div>
+                        <div style="font-size:11px; color:#b45309; font-weight:600; margin-top:2px;">⏳ Pending</div>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        function processWithdraw() {
+            const amountInput = document.getElementById("withdraw-amount").value;
+            const numberInput = document.getElementById("withdraw-number").value;
+
+            if(!numberInput || !amountInput) {
+                alert("⚠️ অনুগ্রহ করে নম্বর এবং পরিমাণ সঠিকভাবে দিন!");
+                return;
+            }
+
+            const amount = parseFloat(amountInput);
+
+            if(amount < 550) {
+                alert("⚠️ সর্বনিম্ন উইথড্র পরিমাণ ৳৫৫০!");
+                return;
+            }
+
+            if(userData.balance < amount) {
+                alert("❌ দুঃখিত! আপনার একাউন্টে পর্যাপ্ত ব্যালেন্স নাই।");
+                return;
+            }
+
+            if(userData.referCount < 10) {
+                alert(`❌ উইথড্র ব্যর্থ হয়েছে!\n\nআপনার উইথড্র রিকোয়েস্টটি সফল করতে কমপক্ষে ১০ জন বন্ধুকে ইনভাইট (রেফার) করতে হবে।`);
+                return;
+            }
+
+            userData.balance -= amount;
+            userData.totalWithdraw += amount;
+
+            const now = new Date();
+            const timeString = now.getDate() + "/" + (now.getMonth() + 1) + "/" + now.getFullYear() + " " + now.getHours() + ":" + (now.getMinutes()<10?'0':'') + now.getMinutes();
+            
+            withdrawHistory.unshift({
+                method: selectedMethodName,
+                number: numberInput,
+                amount: amount,
+                time: timeString
+            });
+
+            let msgText = `🔔 **নতুন উইথড্র রিকোয়েস্ট** 🔔\n\n👤 ইউজার: ${userData.name}\n🆔 আইডি: ${userData.id}\n💼 মেথড: ${selectedMethodName}\n📱 নম্বর: ${numberInput}\n💵 পরিমাণ: ৳${amount}\n👥 মোট রেফার: ${userData.referCount} জন`;
+            window.open(`https://t.me/share/url?url=https://t.me/${botUserName}&text=${encodeURIComponent(msgText)}`, "_blank");
+
+            document.getElementById("withdraw-amount").value = "";
+            document.getElementById("withdraw-number").value = "";
+
+            saveUserData();
+            setupDynamicUI();
+            renderWithdrawHistory();
+            alert("🎉 আপনার উইথড্র রিকোয়েস্টটি সফল হয়েছে!");
+        }
+
+        function navigateTo(pageId) {
+            document.querySelectorAll('.app-page').forEach(page => page.classList.remove('active'));
+            document.getElementById(pageId).classList.add('active');
+
+            const navItems = document.querySelectorAll('.nav-item');
+            navItems.forEach(item => item.classList.remove('active'));
+
+            if(pageId === 'page-home') navItems[0].classList.add('active');
+            if(pageId === 'page-earn') navItems[1].classList.add('active');
+            if(pageId === 'page-refer') navItems[2].classList.add('active');
+            if(pageId === 'page-withdraw') navItems[3].classList.add('active');
+            if(pageId === 'page-profile') navItems[4].classList.add('active');
+        }
+
+        function selectMethod(element) {
+            document.querySelectorAll('.method-card').forEach(c => c.classList.remove('selected'));
+            element.classList.add('selected');
+            selectedMethodName = element.innerText;
+        }
+
+        function copyReferralLink() {
+            const inviteUrl = `https://t.me/${botUserName}/app?startapp=${userData.id}`;
+            navigator.clipboard.writeText(inviteUrl).then(() => {
+                alert("আপনার রেফারেল লিংক কপি করা হয়েছে!");
+            });
+        }
+
+        function shareToTelegram() {
+            const inviteUrl = `https://t.me/${botUserName}/app?startapp=${userData.id}`;
+            const shareText = encodeURIComponent("🎯 প্রতি রেফারে ৫০ টাকা বোনাস! ফ্রিতে লাইভ ইনকাম করতে এখনই জয়েন করুন।");
+            window.open(`https://t.me/share/url?url=${encodeURIComponent(inviteUrl)}&text=${shareText}`, "_blank");
+        }
+    </script>
+</body>
+</html>
